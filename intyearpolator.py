@@ -110,21 +110,29 @@ for i in range(len(pred_pts)):
 # Create searching radius based on variance
 def searching_radius(var, mean):
     
-    if var <= 0.25 * mean:
+    if var <= 0.5 * mean:
         
-        return (dist(merged['GKODE'].min(), merged['GKODN'].min(), merged['GKODE'].max(), merged['GKODN'].max())) * 0.5
-    
-    elif var > 0.25 * mean and var <= 0.5 * mean:
-        
-        return ((dist(merged['GKODE'].min(), merged['GKODN'].min(), merged['GKODE'].max(), merged['GKODN'].max())) * 0.5) * 0.75
+        return (dist(merged['GKODE'].min(), merged['GKODN'].min(), merged['GKODE'].max(), merged['GKODN'].max())) * 0.75
     
     elif var > 0.5 * mean and var <= 0.75 * mean:
         
-        return ((dist(merged['GKODE'].min(), merged['GKODN'].min(), merged['GKODE'].max(), merged['GKODN'].max())) * 0.5) * 0.5
+        return ((dist(merged['GKODE'].min(), merged['GKODN'].min(), merged['GKODE'].max(), merged['GKODN'].max())) * 0.5) * 0.65
+    
+    elif var > 0.75 * mean and var <= 1 * mean:
+        
+        return ((dist(merged['GKODE'].min(), merged['GKODN'].min(), merged['GKODE'].max(), merged['GKODN'].max())) * 0.5) * 0.55
+    
+    elif var > 1.50 * mean and var <= 1.75 * mean:
+        
+        return ((dist(merged['GKODE'].min(), merged['GKODN'].min(), merged['GKODE'].max(), merged['GKODN'].max())) * 0.5) * 0.25
+    
+    elif var > 1.75 * mean and var <= 2.0 * mean:
+        
+        return ((dist(merged['GKODE'].min(), merged['GKODN'].min(), merged['GKODE'].max(), merged['GKODN'].max())) * 0.5) * 0.125
     
     else :
     
-        return ((dist(merged['GKODE'].min(), merged['GKODN'].min(), merged['GKODE'].max(), merged['GKODN'].max())) * 0.5) * 0.25
+        return ((dist(merged['GKODE'].min(), merged['GKODN'].min(), merged['GKODE'].max(), merged['GKODN'].max())) * 0.5) * 0.4
 
 sr_posterior = []
 for i in range(len(pred_pts)):
