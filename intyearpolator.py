@@ -122,11 +122,11 @@ def searching_radius(var, mean):
         
         return ((dist(merged['GKODE'].min(), merged['GKODN'].min(), merged['GKODE'].max(), merged['GKODN'].max())) * 0.5) * 0.55
     
-    elif var > 1.50 * mean and var <= 1.75 * mean:
+    elif var > 1 * mean and var <= 1.5 * mean:
         
         return ((dist(merged['GKODE'].min(), merged['GKODN'].min(), merged['GKODE'].max(), merged['GKODN'].max())) * 0.5) * 0.25
     
-    elif var > 1.75 * mean and var <= 2.0 * mean:
+    elif var > 1.5 * mean and var <= 2.0 * mean:
         
         return ((dist(merged['GKODE'].min(), merged['GKODN'].min(), merged['GKODE'].max(), merged['GKODN'].max())) * 0.5) * 0.125
     
