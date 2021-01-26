@@ -6,7 +6,7 @@ This predictor was especially designed for infering the year of construction of 
 
 IntYEARpolator is a simple statistical model which main characteristic is to query for neighbour's data based on different searching radius. First of all, a general searching radius is defines as half of the largest distance (between random variables). For every prediction location, the variance between all data in the 'prior' searching radius will be used to create a 'posterior' searching radius. This way, the higher the variance, the smaller the searching radius, as we tend to trust data less. The exception to this rule is for variances that are higher than 2 x the mean distance between points. In this case, the searching radius increases again in order to avoid clusters of very old houses that during tests caused understimation. The figure below demonstrates the logic behing the creation of buffers.
 
-!()[f1.png}
+![](f1.png)
 
 being *d* the distance between points, \mi the mean and s² the sample variance. 
 
