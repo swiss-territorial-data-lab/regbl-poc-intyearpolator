@@ -22,19 +22,11 @@ import pandas as pd
 import numpy as np
 import argparse
 import math
-from rpy2.robjects.packages import importr 
-from rpy2.robjects.conversion import localconverter
-from rpy2.robjects import pandas2ri
-import rpy2.robjects as ro
-geoR = importr('geoR')
+from scipy.spatial.distance import cdist
 
-from rpy2.rinterface_lib.callbacks import logger as rpy2_logger
-import logging
-rpy2_logger.setLevel(logging.ERROR)
-
+# Avoid unnecessary warnings
 import warnings
 warnings.simplefilter(action = "ignore", category = RuntimeWarning)
-
 
 # create argument parser #
 pm_argparse = argparse.ArgumentParser()
@@ -84,12 +76,8 @@ regbl_coords = merged[["GKODE", "GKODN"]]
 regbl_coords = regbl_coords.dropna()
 pred_coords = pred_pts[["GKODE", "GKODN"]]
 
-with localconverter(ro.default_converter + pandas2ri.converter):
-  r_regbl_coords = ro.conversion.py2rpy(regbl_coords)
-  r_pred_coords = ro.conversion.py2rpy(pred_coords)
-
 # matrix of distances
-m = np.array(geoR.loccoords(r_regbl_coords, r_pred_coords))
+m = cdist(pred_coords, regbl_coords, 'euclidean')
 t = np.matrix.transpose(m)
 
 # define prior searching radius

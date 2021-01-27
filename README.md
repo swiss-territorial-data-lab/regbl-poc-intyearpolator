@@ -31,17 +31,13 @@ This program is licensed under the terms of the GNU GPLv3. Documentation and ill
 
 ## Dependencies
 
-List of Python packages (can be installed either by pip or conda) used:
+* Python 3.6 or superior
+
+Packages can be installed either by pip or conda:
 
 * pandas 1.2.0
 
 * numpy 1.18.4
 
-* rpy2 (for now) 3.4.2
-
-One may expect that older and newer versions can work as well.
-
-R must be installed in your machine for now. 
-
-R Version: 4.0.2 (or superior)
+* scipy 1.5.4
 
