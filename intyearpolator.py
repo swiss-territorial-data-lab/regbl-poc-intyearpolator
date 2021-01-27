@@ -28,6 +28,14 @@ from rpy2.robjects import pandas2ri
 import rpy2.robjects as ro
 geoR = importr('geoR')
 
+from rpy2.rinterface_lib.callbacks import logger as rpy2_logger
+import logging
+rpy2_logger.setLevel(logging.ERROR)
+
+import warnings
+warnings.simplefilter(action = "ignore", category = RuntimeWarning)
+
+
 # create argument parser #
 pm_argparse = argparse.ArgumentParser()
 
@@ -56,7 +64,7 @@ def dist(x1, y1, x2, y2):
 
 # import datasets
 pts = pd.read_table(pm_args.input, sep = ' ')
-regbl = pd.read_table(pm_args.regbl)
+regbl = pd.read_table(pm_args.regbl, low_memory=False)
 
 # detect oldest map
 last_map = pts.iloc[:,1].min()
@@ -101,7 +109,7 @@ which = list(which)
 prior_mean = []
 prior_var = []
 for i in range(len(pred_pts)): 
-    years = merged.iloc[which[i][0], -1] # change 51 for the column name 'year' #
+    years = merged.iloc[which[i][0], -1] 
     mean = years.mean() 
     var = years.var()
     prior_mean.append(mean)
@@ -155,7 +163,7 @@ inrange = list(inrange)
 mean_posterior = []
 var_posterior = []
 for i in range(len(pred_pts)): 
-    years = merged.iloc[inrange[i][0], -1] # change 51 for the column name 'year' #
+    years = merged.iloc[inrange[i][0], -1]
     mean = years.mean() 
     
     if mean > last_map:
@@ -172,7 +180,7 @@ prediction_variance = list(var_posterior)
 pred_pts = pd.DataFrame(pred_pts)
 pred_pts['pred_year'] = predicted_year
 pred_pts['pred_var'] = prediction_variance
-pred_pts['pred_year'] = pred_pts['pred_year'].astype(int)
+pred_pts['pred_year'] = pred_pts['pred_year'].round()
 pred_pts = pred_pts[['EGID', 'pred_year', 'pred_var', 'year']]
 
 pts.columns = ['EGID', 'year1', 'year2']
