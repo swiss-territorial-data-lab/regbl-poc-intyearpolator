@@ -29,9 +29,11 @@ being *d* the distance between points, \mi the mean and s² the sample variance.
 
 It is important to state that the model will not predict values higher that the oldest map, this way letting the major responsability to the regbl-poc detector. 
 
+The most recent update on the model includes the clusterin of the results from the porsterior mean and points coordinates with gaussian mixed models and the usage of the mean of every cluster, what could bring more detail to predictions.
+
 # Usage
 
-There are two input files called in the prompt, being one a table of the outputs of regbl-poc detector (deduce_location folder), once **compacted**, and the other the entire regbl database. The output for is a table adding **predicted year** and **prediction varaince**. The second one was majorly thought for evaluation of the searching radiuses creation. 
+There are two input files called in the prompt, being one a table of the outputs of regbl-poc detector (deduce_location folder), once **compacted**, and the other the entire regbl database. The output for is a table adding **predicted year** and **prediction variance**. The second one was majorly thought for evaluation of the searching radiuses creation. An optional input refers to creating a plo tof the clusters performed or not with the **plot** argument, that can be assigned as 1 (True), or 0(False, default).
 
 In your terminal, try:
 
@@ -57,4 +59,6 @@ Packages can be installed either by pip or conda:
 * numpy 1.18.4
 
 * scipy 1.5.4
+
+* scikit-learn 0.24.0
 

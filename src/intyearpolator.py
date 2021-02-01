@@ -23,6 +23,7 @@ import numpy as np
 import argparse
 import math
 from scipy.spatial.distance import cdist
+from sklearn import mixture
 
 # Avoid unnecessary warnings
 import warnings
@@ -35,6 +36,7 @@ pm_argparse = argparse.ArgumentParser()
 pm_argparse.add_argument( '-i', '--input', type=str, help='input table path' )
 pm_argparse.add_argument( '-r', '--regbl', type=str, help='input regbl path' )
 pm_argparse.add_argument( '-o', '--output', type=str, help='output table path' )
+pm_argparse.add_argument( '-p', '--plot', type=int, default=0, help='whether cluster should be plotted (1) or not (0). Default to False (0)')
 
 # read argument and parameters #
 pm_args = pm_argparse.parse_args()
@@ -82,6 +84,7 @@ t = np.matrix.transpose(m)
 
 # define prior searching radius
 prior_sr = (dist(merged['GKODE'].min(), merged['GKODN'].min(), merged['GKODE'].max(), merged['GKODN'].max())) * 0.5
+print("prior searching radius is ", prior_sr, "\n")
 
 # query in the transposed matrix by prior searching radius
 which = []
@@ -104,6 +107,7 @@ for i in range(len(pred_pts)):
     prior_var.append(var)
 
 # Create searching radius based on variance
+print("Creating posterior searching radius based on variance \n" )
 def searching_radius(var, mean):
     
     if var <= 0.5 * mean:
@@ -148,20 +152,21 @@ for i in range(len(pred_pts)):
 inrange = list(inrange)
     
 # calculate posterior mean and variance
+print('Calculating posterior mean \n')
 mean_posterior = []
 var_posterior = []
 for i in range(len(pred_pts)): 
     years = merged.iloc[inrange[i][0], -1]
     mean = years.mean() 
     
-    if mean > last_map:
-        mean = last_map
+   # if mean > last_map:
+    #    mean = last_map
     
     var = years.var()
     mean_posterior.append(mean)
     var_posterior.append(var)
 
-# join and export predictions
+# join predictions
 predicted_year = list(mean_posterior)
 prediction_variance = list(var_posterior)
 
@@ -175,5 +180,65 @@ pts.columns = ['EGID', 'year1', 'year2']
 out = pd.merge(left=pts, right=pred_pts, left_on='EGID', right_on='EGID', how = 'left')
 
 mergo = pd.merge(left=regbl, right=out, left_on='EGID', right_on='EGID', how = 'right')
-        
+
+# data wrangling for unsupervised learning
+summary_year = []
+for j in range(len(mergo)):
+    if math.isnan(mergo['GBAUJ'].iloc[j]) == 0:
+        year = mergo['GBAUJ'].iloc[j].round()
+    
+    elif math.isnan(mergo['GBAUJ'].iloc[j]) == 1 and math.isnan(mergo['year1'].iloc[j]) == 0 and math.isnan(mergo['pred_year'].iloc[j]) == 1:
+        year = (mergo['year1'].iloc[j] +  mergo['year2'].iloc[j]) / 2
+    
+    elif math.isnan(mergo['pred_year'].iloc[j]) == 0:
+        year = mergo['pred_year'].iloc[j].round()
+    
+    else: 
+        year = 0
+
+    summary_year.append(year)
+     
+mergo['filled'] = summary_year
+mergo = mergo[['EGID', 'GKODE', 'GKODN', 'filled']]
+
+X = mergo.iloc[:,1:4].to_numpy()
+
+# Gaussian Mixture Model for clustering
+n_comp = int((len(mergo)) * 0.02 - 56 )
+print("running gaussian mixture model clustering with ", n_comp, " components \n" )
+gmm = mixture.GaussianMixture(n_components=n_comp, covariance_type = 'full').fit(X)
+labels = gmm.predict(X)
+probs = gmm.predict_proba(X)
+
+if pm_args.plot != 0:
+    import matplotlib
+    import matplotlib.pyplot as plt
+    size = 50 * probs.max(1) ** 2
+    plt.scatter(X[:, 0], X[:, 1], c=labels, cmap='viridis', s=size);
+    matplotlib.pyplot.show()
+
+mergo['cluster'] = labels
+
+# calculate mean of values in each cluster
+def createList(n_comp): 
+    return list(range(0, n_comp)) 
+seq_clusters = createList(n_comp) 
+
+m_c = {}
+for i in seq_clusters:
+    m_c['c%s' % i] = [np.array(mergo[mergo['cluster'] == i].iloc[:,-2]).mean()]
+m_c = np.array(pd.DataFrame(m_c, index = [0]))
+m_c = m_c.astype(int)
+
+# lambda of weights (probabilities of each point being in a certain cluster) * mean of values inside cluster
+a = probs * m_c
+
+# making final predictions
+Z = []
+for i in range(len(a)):
+    z = a[i].sum().astype(int)
+    Z.append(z)
+mergo['Z'] = Z 
+    
+# export results
 pd.DataFrame.to_csv(mergo, pm_args.output)
