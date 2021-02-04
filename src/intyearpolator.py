@@ -33,7 +33,6 @@ warnings.simplefilter(action = "ignore", category = RuntimeWarning)
 pm_argparse = argparse.ArgumentParser()
 
 # argument and parameter directive #
-pm_argparse.add_argument( '-i', '--input', type=str, help='input table path' )
 pm_argparse.add_argument( '-r', '--regbl', type=str, help='input regbl path' )
 pm_argparse.add_argument( '-o', '--output', type=str, help='output table path' )
 pm_argparse.add_argument( '-p', '--plot', type=int, default=0, help='whether cluster should be plotted (1) or not (0). Default to False (0)')
@@ -57,18 +56,9 @@ def dist(x1, y1, x2, y2):
         return math.sqrt((x1 - x2)**2 + (y1 - y2)**2)
 
 # import datasets
-pts = pd.read_table(pm_args.input, sep = ' ')
 regbl = pd.read_table(pm_args.regbl, low_memory=False)
 
-# detect oldest map
-last_map = pts.iloc[:,1].min()
-
-# query for input values below oldest map
-ran_var = pts[pts.iloc[:,1] == last_map]
-ran_var.columns = ['EGID','year1','year2']
-
-# merge data frames based on EGID
-merged = pd.merge(left=ran_var, right=regbl, left_on='EGID', right_on='EGID')
+merged = regbl
 merged['year'] = merged['GBAUJ'].astype(float)
 
 # select NaN year values among the original years (GBAUJ) given by RegBL 
@@ -174,32 +164,22 @@ pred_pts = pd.DataFrame(pred_pts)
 pred_pts['pred_year'] = predicted_year
 pred_pts['pred_var'] = prediction_variance
 pred_pts['pred_year'] = pred_pts['pred_year'].round()
-pred_pts = pred_pts[['EGID', 'pred_year', 'pred_var', 'year']]
+pred_pts = pred_pts[['EGID', 'pred_year']]
 
-pts.columns = ['EGID', 'year1', 'year2']
-out = pd.merge(left=pts, right=pred_pts, left_on='EGID', right_on='EGID', how = 'left')
+mergo = pd.merge(regbl, pred_pts, on = 'EGID', how = 'left' )
+mergo['filled'] = mergo['pred_year']
 
-mergo = pd.merge(left=regbl, right=out, left_on='EGID', right_on='EGID', how = 'right')
-
+for i in range(len(mergo)):
+    if mergo['filled'][i] > 0:
+        mergo['filled'][i] = mergo['filled'][i]
+    else:
+        mergo['filled'][i] = mergo['GBAUJ'][i]
+        
 # data wrangling for unsupervised learning
-summary_year = []
-for j in range(len(mergo)):
-    if math.isnan(mergo['GBAUJ'].iloc[j]) == 0:
-        year = mergo['GBAUJ'].iloc[j].round()
-    
-    elif math.isnan(mergo['GBAUJ'].iloc[j]) == 1 and math.isnan(mergo['year1'].iloc[j]) == 0 and math.isnan(mergo['pred_year'].iloc[j]) == 1:
-        year = (mergo['year1'].iloc[j] +  mergo['year2'].iloc[j]) / 2
-    
-    elif math.isnan(mergo['pred_year'].iloc[j]) == 0:
-        year = mergo['pred_year'].iloc[j].round()
-    
-    else: 
-        year = 0
 
-    summary_year.append(year)
-     
-mergo['filled'] = summary_year
+
 mergo = mergo[['EGID', 'GKODE', 'GKODN', 'filled']]
+
 
 X = mergo.iloc[:,1:4].to_numpy()
 
