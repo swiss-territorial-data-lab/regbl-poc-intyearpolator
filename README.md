@@ -19,23 +19,23 @@ The following links give access to official documentations on the considered dat
 
 
 # intYEARpolator
-This predictor was especially designed for infering the year of construction of buildings in Switzerland. Although this is supplementary to an object detection based algorithm working on the presence (or absence) of houses in swisstopo maps in comparison to RegBL (GWR) database. Therefere, this model is only extrapolating regbl-poc predictions to years beyond the oldest map available in some area. This is an add-on and should not replace the results from the main detector. Although you may find it interesting for testing, as its predictions are made for all null (*NaN*) values. Despite it's been desgned for spatially interpolating the year of construction of houses, it may also be interesting in cases where the urban pattern structure could be relevant.
+This predictor was especially designed for infering the year of construction of buildings in Switzerland. Although this is supplementary to an object detection based algorithm working on the presence (or absence) of houses in swisstopo maps in comparison to RegBL (GWR) database. Therefere, this model is only extrapolating regbl-poc predictions to years beyond the oldest map available in some area. This is an add-on and should not replace the results from the main detector. Although you may find it interesting for testing, as its predictions are made for all null (*NaN*) values. Despite it's been designed for spatially interpolating the year of construction of houses, it may also be interesting in cases where the urban pattern structure could be relevant.
 
 IntYEARpolator is a spatial statistcs model which main characteristics are to query for neighbour's data based on different searching radius and the use of a gaussian mixture model for clustering in estimations. First of all, a general searching radius is defined as half of the largest distance (between random variables). For every prediction location, the variance between all data in the 'prior' searching radius will be used to create a 'posterior' searching radius. This way, the higher the variance, the smaller the searching radius, as we tend to trust data less. The exception to this rule is for variances that are higher than 2 x the mean distance between points. In this case, the searching radius increases again in order to avoid clusters of very old houses that during tests caused understimation. The figure below demonstrates the logic behing the creation of buffers.
 
 ![](doc/image/f1.png)
 
-being *d* the distance between points, $$\mu$$ the mean and *s²* the sample variance. 
+being *d* the distance between points, μ the mean and *s²* the sample variance. 
 
 This first procedure is used to fill the gaps in the entry database. This completion is only done in the random variable column and not on the coordinates on. This is done so clustering can be computed. The unsupervised learning tool used is a gaussian mixture model, which does not only segments data into clusters, but as it is a probabilistic model, it will indicate the probability of each point belonging to every cluster. The number of components computed is a linear function to the total number of points being used, inclusing the ones that previously had gaps. The function to find the number of component is the following:
 
 ![](doc/image/eq1.png)
 
-being <img src="http://www.sciweavers.org/tex2img.php?eq=%24%24n_c%24%24%0A&bc=White&fc=Black&im=gif&fs=12&ff=arev&edit=0" align="center" border="0" alt="$$n_c$$" width="22" height="15" /> the number of components / clusters, and <img src="http://www.sciweavers.org/tex2img.php?eq=%24%24n_p%24%24%0A&bc=White&fc=Black&im=gif&fs=12&ff=arev&edit=0" align="center" border="0" alt="$$n_p$$" width="24" height="18" /> the total number of points used. The number of clusters shall usually be very large compared to a standard clustering exercise. This will enhance the degree of detailing in predictions. An example of clustering performed by the embedded gaussian mixture model can be seen below:
+being *np* the number of components / clusters, and *nc* the total number of points used. The number of clusters shall usually be very large compared to a standard clustering exercise. This will enhance the degree of detailing in predictions. An example of clustering performed by the embedded gaussian mixture model can be seen below:
 
 ![](doc/image/f2.png)
 
-Hence the matrix of probabilities of every point belonging to each cluster ($$\lambda$$ - what can be considered a matrix of weighs) is multiplied by the the mean of each cluster ( 1 * *nc* matrix), forming the *A* matrix :
+Hence the matrix of probabilities of every point belonging to each cluster (λ - what can be considered a matrix of weighs) is multiplied by the the mean of each cluster ( 1 x *nc* matrix), forming the *A* matrix :
 
 ![](doc/image/eq2.png)
 
