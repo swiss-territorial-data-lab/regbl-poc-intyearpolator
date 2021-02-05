@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-#  mean-year
+#  intYEARpolator
 #
 #     Huriel Reichel - huriel.ruan@gmail.com
 #     Nils Hamel - nils.hamel@bluewin.ch
@@ -18,6 +18,7 @@
 #  You should have received a copy of the GNU General Public License
 #  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+# import libraries
 import pandas as pd
 import numpy as np
 import argparse
@@ -29,15 +30,19 @@ from sklearn import mixture
 import warnings
 warnings.simplefilter(action = "ignore", category = RuntimeWarning)
 
-# create argument parser #
+# create argument parser 
 pm_argparse = argparse.ArgumentParser()
 
-# argument and parameter directive #
-pm_argparse.add_argument( '-r', '--regbl', type=str, help='input regbl path' )
+# argument and parameter directive 
+pm_argparse.add_argument( '-i', '--input', type=str, help='input regbl path' )
 pm_argparse.add_argument( '-o', '--output', type=str, help='output table path' )
 pm_argparse.add_argument( '-p', '--plot', type=int, default=0, help='whether cluster should be plotted (1) or not (0). Default to False (0)')
+pm_argparse.add_argument( '-x', '--long', type=str, default='GKODE', help='longitude column name. Default to GKODE')
+pm_argparse.add_argument( '-y', '--lat', type=str, default='GKODN', help='latitude column name. Default to GKODN')
+pm_argparse.add_argument( '-z', '--ranvar', type=str, default='GBAUJ', help='random variable column name. Default to GBAUJ')
+pm_argparse.add_argument( '--id', type=str, default='EGID', help='ID column name. Default to EGID')
 
-# read argument and parameters #
+# read argument and parameters 
 pm_args = pm_argparse.parse_args()
 
 # function to measure distance
@@ -55,26 +60,26 @@ def dist(x1, y1, x2, y2):
     
         return math.sqrt((x1 - x2)**2 + (y1 - y2)**2)
 
-# import datasets
-regbl = pd.read_table(pm_args.regbl, low_memory=False)
+# import dataset
+regbl = pd.read_table(pm_args.input, low_memory=False)
 
-merged = regbl
-merged['year'] = merged['GBAUJ'].astype(float)
+regbl['year'] = regbl[pm_args.ranvar].astype(float)
 
 # select NaN year values among the original years (GBAUJ) given by RegBL 
-pred_pts = merged[merged['year'].isnull()]
+pred_pts = regbl[regbl['year'].isnull()]
 
-regbl_coords = merged[["GKODE", "GKODN"]]
+regbl_coords = regbl[[pm_args.long, pm_args.lat]]
 regbl_coords = regbl_coords.dropna()
-pred_coords = pred_pts[["GKODE", "GKODN"]]
+pred_coords = pred_pts[[pm_args.long, pm_args.lat]]
 
 # matrix of distances
 m = cdist(pred_coords, regbl_coords, 'euclidean')
 t = np.matrix.transpose(m)
 
 # define prior searching radius
-prior_sr = (dist(merged['GKODE'].min(), merged['GKODN'].min(), merged['GKODE'].max(), merged['GKODN'].max())) * 0.5
-print("prior searching radius is ", prior_sr, "\n")
+prior_sr = (dist(regbl[pm_args.long].min(), regbl[pm_args.lat].min(), regbl[pm_args.long].max(), regbl[pm_args.lat].max())) * 0.5
+prior_sr = round(prior_sr, 2)
+print("\n prior searching radius is ", prior_sr, "\n")
 
 # query in the transposed matrix by prior searching radius
 which = []
@@ -90,39 +95,39 @@ which = list(which)
 prior_mean = []
 prior_var = []
 for i in range(len(pred_pts)): 
-    years = merged.iloc[which[i][0], -1] 
+    years = regbl.iloc[which[i][0], -1] 
     mean = years.mean() 
     var = years.var()
     prior_mean.append(mean)
     prior_var.append(var)
 
 # Create searching radius based on variance
-print("Creating posterior searching radius based on variance \n" )
+print("Creating posterior searching radius based on variance ... \n" )
 def searching_radius(var, mean):
     
     if var <= 0.5 * mean:
         
-        return (dist(merged['GKODE'].min(), merged['GKODN'].min(), merged['GKODE'].max(), merged['GKODN'].max())) * 0.75
+        return (dist(regbl[pm_args.long].min(), regbl[pm_args.lat].min(), regbl[pm_args.long].max(), regbl[pm_args.lat].max())) * 0.75
     
     elif var > 0.5 * mean and var <= 0.75 * mean:
         
-        return ((dist(merged['GKODE'].min(), merged['GKODN'].min(), merged['GKODE'].max(), merged['GKODN'].max())) * 0.5) * 0.65
+        return ((dist(regbl[pm_args.long].min(), regbl[pm_args.lat].min(), regbl[pm_args.long].max(), regbl[pm_args.lat].max())) * 0.5) * 0.65
     
     elif var > 0.75 * mean and var <= 1 * mean:
         
-        return ((dist(merged['GKODE'].min(), merged['GKODN'].min(), merged['GKODE'].max(), merged['GKODN'].max())) * 0.5) * 0.55
+        return ((dist(regbl[pm_args.long].min(), regbl[pm_args.lat].min(), regbl[pm_args.long].max(), regbl[pm_args.lat].max())) * 0.5) * 0.55
     
     elif var > 1 * mean and var <= 1.5 * mean:
         
-        return ((dist(merged['GKODE'].min(), merged['GKODN'].min(), merged['GKODE'].max(), merged['GKODN'].max())) * 0.5) * 0.25
+        return ((dist(regbl[pm_args.long].min(), regbl[pm_args.lat].min(), regbl[pm_args.long].max(), regbl[pm_args.lat].max())) * 0.5) * 0.25
     
     elif var > 1.5 * mean and var <= 2.0 * mean:
         
-        return ((dist(merged['GKODE'].min(), merged['GKODN'].min(), merged['GKODE'].max(), merged['GKODN'].max())) * 0.5) * 0.125
+        return ((dist(regbl[pm_args.long].min(), regbl[pm_args.lat].min(), regbl[pm_args.long].max(), regbl[pm_args.lat].max())) * 0.5) * 0.125
     
     else :
     
-        return ((dist(merged['GKODE'].min(), merged['GKODN'].min(), merged['GKODE'].max(), merged['GKODN'].max())) * 0.5) * 0.4
+        return ((dist(regbl[pm_args.long].min(), regbl[pm_args.lat].min(), regbl[pm_args.long].max(), regbl[pm_args.lat].max())) * 0.5) * 0.4
 
 sr_posterior = []
 for i in range(len(pred_pts)):
@@ -142,16 +147,12 @@ for i in range(len(pred_pts)):
 inrange = list(inrange)
     
 # calculate posterior mean and variance
-print('Calculating posterior mean \n')
+print('Calculating posterior mean and filling gaps ... \n')
 mean_posterior = []
 var_posterior = []
 for i in range(len(pred_pts)): 
-    years = merged.iloc[inrange[i][0], -1]
-    mean = years.mean() 
-    
-   # if mean > last_map:
-    #    mean = last_map
-    
+    years = regbl.iloc[inrange[i][0], -1]
+    mean = years.mean()     
     var = years.var()
     mean_posterior.append(mean)
     var_posterior.append(var)
@@ -164,28 +165,24 @@ pred_pts = pd.DataFrame(pred_pts)
 pred_pts['pred_year'] = predicted_year
 pred_pts['pred_var'] = prediction_variance
 pred_pts['pred_year'] = pred_pts['pred_year'].round()
-pred_pts = pred_pts[['EGID', 'pred_year']]
+pred_pts = pred_pts[[pm_args.id, 'pred_year']]
 
-mergo = pd.merge(regbl, pred_pts, on = 'EGID', how = 'left' )
+mergo = pd.merge(regbl, pred_pts, on = pm_args.id, how = 'left' )
 mergo['filled'] = mergo['pred_year']
 
 for i in range(len(mergo)):
     if mergo['filled'][i] > 0:
-        mergo['filled'][i] = mergo['filled'][i]
+        mergo.loc[i, 'filled'] = mergo.loc[i, 'filled']
     else:
-        mergo['filled'][i] = mergo['GBAUJ'][i]
+        mergo.loc[i, 'filled'] = mergo.loc[i, pm_args.ranvar]
         
 # data wrangling for unsupervised learning
-
-
-mergo = mergo[['EGID', 'GKODE', 'GKODN', 'filled']]
-
-
-X = mergo.iloc[:,1:4].to_numpy()
+mergo = mergo[[pm_args.id, pm_args.long, pm_args.lat, 'filled']]  
+X = mergo.iloc[:, 1:4].to_numpy()
 
 # Gaussian Mixture Model for clustering
 n_comp = int((len(mergo)) * 0.02 - 56 )
-print("running gaussian mixture model clustering with ", n_comp, " components \n" )
+print("Computing gaussian mixture model clustering with ", n_comp, " components ... \n" )
 gmm = mixture.GaussianMixture(n_components=n_comp, covariance_type = 'full').fit(X)
 labels = gmm.predict(X)
 probs = gmm.predict_proba(X)
@@ -208,9 +205,9 @@ m_c = {}
 for i in seq_clusters:
     m_c['c%s' % i] = [np.array(mergo[mergo['cluster'] == i].iloc[:,-2]).mean()]
 m_c = np.array(pd.DataFrame(m_c, index = [0]))
-m_c = m_c.astype(int)
 
 # lambda of weights (probabilities of each point being in a certain cluster) * mean of values inside cluster
+print("Building A matrix ... \n" )
 a = probs * m_c
 
 # making final predictions
@@ -219,6 +216,8 @@ for i in range(len(a)):
     z = a[i].sum().astype(int)
     Z.append(z)
 mergo['Z'] = Z 
-    
+
 # export results
 pd.DataFrame.to_csv(mergo, pm_args.output)
+print("Processing done and output generated" )
+
