@@ -35,7 +35,7 @@ being *np* the number of components / clusters, and *nc* the total number of poi
 
 ![](doc/image/f2.png)
 
-Hence the matrix of probabilities of every point belonging to each cluster (λ - what can be considered a matrix of weighs) is multiplied by the the mean of each cluster ( 1 x *nc* matrix), forming the *A* matrix :
+Hence the matrix of probabilities of every point belonging to each cluster (λ - what can be considered a matrix of weighs) is multiplied by the the mean of each cluster ( 1 x *nc* matrix *mc*), forming the *A* matrix :
 
 ![](doc/image/eq2.png)
 
