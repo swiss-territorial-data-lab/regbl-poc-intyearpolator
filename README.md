@@ -25,6 +25,25 @@ IntYEARpolator is a spatial statistcs model which main characteristics are to qu
 
 ![](doc/image/f1.png)
 
+<<<<<<< HEAD
+being *d* the distance between points, <img src="http://www.sciweavers.org/tex2img.php?eq=%24%24%5Cmu%24%24&bc=White&fc=Black&im=gif&fs=12&ff=arev&edit=0" align="center" border="0" alt="$$\mu$$" width="15" height="15" /> the mean and *s²* the sample variance. 
+
+This first procedure is used to fill the gaps in the entry database. This completion is only done in the random variable column and not on the coordinates on. This is done so clustering can be computed. The unsupervised learning tool used is a gaussian mixture model, which does not only segments data into clusters, but as it is a probabilistic model, it will indicate the probability of each point belonging to every cluster. The number of components computed is a linear function to the total number of points being used, inclusing the ones that previously had gaps. The function to find the number of component is the following:
+
+<img src="http://www.sciweavers.org/tex2img.php?eq=%20%24%24n_c%20%3D%200.02%20%2A%20n_p%20-%2056%24%24%20%0A&bc=White&fc=Black&im=gif&fs=12&ff=arev&edit=0" align="center" border="0" alt=" $$n_c = 0.02 * n_p - 56$$ " width="164" height="21" /> 
+
+being <img src="http://www.sciweavers.org/tex2img.php?eq=%24%24n_c%24%24%0A&bc=White&fc=Black&im=gif&fs=12&ff=arev&edit=0" align="center" border="0" alt="$$n_c$$" width="22" height="15" /> the number of components / clusters, and <img src="http://www.sciweavers.org/tex2img.php?eq=%24%24n_p%24%24%0A&bc=White&fc=Black&im=gif&fs=12&ff=arev&edit=0" align="center" border="0" alt="$$n_p$$" width="24" height="18" /> the total number of points used. The number of clusters shall usually be very large compared to a standard clustering exercise. This will enhance the degree of detailing in predictions. An example of clustering performed by the embedded gaussian mixture model can be seen below:
+
+![](doc/image/f2.png)
+
+Hence the matrix of probabilities of every point belonging to each cluster (<img src="http://www.sciweavers.org/tex2img.php?eq=%24%24%5Clambda%24%24%0A&bc=White&fc=Black&im=gif&fs=12&ff=arev&edit=0" align="center" border="0" alt="$$\lambda$$" width="17" height="15" /> - what can be considered a matrix of weighs) is multiplied by the the mean of each cluster (a <img src="http://www.sciweavers.org/tex2img.php?eq=%24%241%2An_c%24%24%20%0A&bc=White&fc=Black&im=gif&fs=12&ff=arev&edit=0" align="center" border="0" alt="$$1*n_c$$ " width="54" height="17" /> matrix), forming the *A* matrix :
+
+<img src="http://www.sciweavers.org/tex2img.php?eq=%24%24A%20%3D%20%5Clambda%20%2A%20m_c%24%24%0A%0A&bc=White&fc=Black&im=gif&fs=12&ff=arev&edit=0" align="center" border="0" alt="$$A = \lambda * m_c$$" width="93" height="18" />
+
+or in matrices:
+
+![](doc/image/f3.png)
+=======
 being *d* the distance between points, $$\mu$$ the mean and *s²* the sample variance. 
 
 This first procedure is used to fill the gaps in the entry database. This completion is only done in the random variable column and not on the coordinates on. This is done so clustering can be computed. The unsupervised learning tool used is a gaussian mixture model, which does not only segments data into clusters, but as it is a probabilitical model, it wiull indicate the prbability of each point belonging to every cluster. The number of components computed is a linear function to the total number of points being used, inclusing the ones that previously had gaps. The function to find the number of component is the following:
@@ -50,6 +69,7 @@ $$A = \begin{bmatrix}\lambda_{11} & \lambda_{12} & \lambda_{13} & ... & \lambda_
 \begin{bmatrix} 
 \mu_1 & \mu_2 & \mu_3 & ...  & \mu_{n_c}\\ 
 \end{bmatrix}$$ 
+>>>>>>> c57d0f7deb2bb3f5133254a9c9d9af238941cbdf
 
 Finally the predictions (*Ẑ*) can then be made using the sum of each row in the *A* matrix.
 
