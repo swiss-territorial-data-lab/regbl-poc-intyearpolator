@@ -25,11 +25,11 @@ IntYEARpolator is a spatial statistcs model which main characteristics are to qu
 
 ![](doc/image/f1.png)
 
-being *d* the distance between points, \mi the mean and s² the sample variance. 
+being *d* the distance between points, $$\mu$$ the mean and s² the sample variance. 
 
 This first procdure is used to fill the gaps in the entry database. This completion is only done in the random variable column and not on the coordinates on. This is done so clustering can be computed. The unsupervised learning tool used is a gaussian mixture model, which does not only segments data into clusters, but as it is a probabilitical model, it wiull indicate the prbability of each point belonging to every cluster. The number of components computed is a linear function to the total number of points being used, inclusing the ones that previously had gaps. The function to find the number of component is the following:
 
-$n_c = 0.02 * n_p - 56$ 
+<img src="https://render.githubusercontent.com/render/math?math=n_c=0.02*n_p-56"> 
 
 being $n_c$ the number of components / clusters, and $n_p$ the total number of points used.
 
