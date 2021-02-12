@@ -45,7 +45,6 @@ pm_argparse.add_argument( '--id', type=str, default='EGID', help='ID column name
 # read argument and parameters 
 pm_args = pm_argparse.parse_args()
 
-# function to measure distance
 def dist(x1, y1, x2, y2):
     
     if x1 == x2:
@@ -60,8 +59,35 @@ def dist(x1, y1, x2, y2):
     
         return math.sqrt((x1 - x2)**2 + (y1 - y2)**2)
 
+def searching_radius(var, mean):
+    
+    if var <= 0.5 * mean:
+        
+        return (dist(regbl[pm_args.long].min(), regbl[pm_args.lat].min(), regbl[pm_args.long].max(), regbl[pm_args.lat].max())) * 0.75
+    
+    elif var > 0.5 * mean and var <= 0.75 * mean:
+        
+        return ((dist(regbl[pm_args.long].min(), regbl[pm_args.lat].min(), regbl[pm_args.long].max(), regbl[pm_args.lat].max())) * 0.5) * 0.65
+    
+    elif var > 0.75 * mean and var <= 1 * mean:
+        
+        return ((dist(regbl[pm_args.long].min(), regbl[pm_args.lat].min(), regbl[pm_args.long].max(), regbl[pm_args.lat].max())) * 0.5) * 0.55
+    
+    elif var > 1 * mean and var <= 1.5 * mean:
+        
+        return ((dist(regbl[pm_args.long].min(), regbl[pm_args.lat].min(), regbl[pm_args.long].max(), regbl[pm_args.lat].max())) * 0.5) * 0.25
+    
+    elif var > 1.5 * mean and var <= 2.0 * mean:
+        
+        return ((dist(regbl[pm_args.long].min(), regbl[pm_args.lat].min(), regbl[pm_args.long].max(), regbl[pm_args.lat].max())) * 0.5) * 0.125
+    
+    else :
+    
+        return ((dist(regbl[pm_args.long].min(), regbl[pm_args.lat].min(), regbl[pm_args.long].max(), regbl[pm_args.lat].max())) * 0.5) * 0.4
+
 # import dataset
 regbl = pd.read_table(pm_args.input, low_memory=False)
+regbl = regbl.dropna(subset = [pm_args.lat, pm_args.long])
 
 regbl['year'] = regbl[pm_args.ranvar].astype(float)
 
@@ -103,32 +129,6 @@ for i in range(len(pred_pts)):
 
 # Create searching radius based on variance
 print("Creating posterior searching radius based on variance ... \n" )
-def searching_radius(var, mean):
-    
-    if var <= 0.5 * mean:
-        
-        return (dist(regbl[pm_args.long].min(), regbl[pm_args.lat].min(), regbl[pm_args.long].max(), regbl[pm_args.lat].max())) * 0.75
-    
-    elif var > 0.5 * mean and var <= 0.75 * mean:
-        
-        return ((dist(regbl[pm_args.long].min(), regbl[pm_args.lat].min(), regbl[pm_args.long].max(), regbl[pm_args.lat].max())) * 0.5) * 0.65
-    
-    elif var > 0.75 * mean and var <= 1 * mean:
-        
-        return ((dist(regbl[pm_args.long].min(), regbl[pm_args.lat].min(), regbl[pm_args.long].max(), regbl[pm_args.lat].max())) * 0.5) * 0.55
-    
-    elif var > 1 * mean and var <= 1.5 * mean:
-        
-        return ((dist(regbl[pm_args.long].min(), regbl[pm_args.lat].min(), regbl[pm_args.long].max(), regbl[pm_args.lat].max())) * 0.5) * 0.25
-    
-    elif var > 1.5 * mean and var <= 2.0 * mean:
-        
-        return ((dist(regbl[pm_args.long].min(), regbl[pm_args.lat].min(), regbl[pm_args.long].max(), regbl[pm_args.lat].max())) * 0.5) * 0.125
-    
-    else :
-    
-        return ((dist(regbl[pm_args.long].min(), regbl[pm_args.lat].min(), regbl[pm_args.long].max(), regbl[pm_args.lat].max())) * 0.5) * 0.4
-
 sr_posterior = []
 for i in range(len(pred_pts)):
     sr = searching_radius(prior_var[i], prior_mean[i])
@@ -157,6 +157,13 @@ for i in range(len(pred_pts)):
     mean_posterior.append(mean)
     var_posterior.append(var)
 
+# if posterior mean could not have been computed, use prior mean
+for i in range(len(mean_posterior)):
+    if mean_posterior[i] > 0:
+        mean_posterior[i] = mean_posterior[i]
+    else:
+        mean_posterior[i] = prior_mean[i]
+        
 # join predictions
 predicted_year = list(mean_posterior)
 prediction_variance = list(var_posterior)
