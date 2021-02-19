@@ -41,6 +41,7 @@ pm_argparse.add_argument( '-x', '--long', type=str, default='GKODE', help='longi
 pm_argparse.add_argument( '-y', '--lat', type=str, default='GKODN', help='latitude column name. Default to GKODN')
 pm_argparse.add_argument( '-z', '--ranvar', type=str, default='GBAUJ', help='random variable column name. Default to GBAUJ')
 pm_argparse.add_argument( '--id', type=str, default='EGID', help='ID column name. Default to EGID')
+pm_argparse.add_argument( '-c', '--concentric', type=int, default=1, help='whether concentric zones should be used (1) or not (0). Default to True (1) - Time demanding')
 
 # read argument and parameters 
 pm_args = pm_argparse.parse_args()
@@ -182,13 +183,75 @@ for i in range(len(mergo)):
         mergo.loc[i, 'filled'] = mergo.loc[i, 'filled']
     else:
         mergo.loc[i, 'filled'] = mergo.loc[i, pm_args.ranvar]
-        
-# data wrangling for unsupervised learning
-mergo = mergo[[pm_args.id, pm_args.long, pm_args.lat, 'filled']]  
-X = mergo.iloc[:, 1:4].to_numpy()
+
+if pm_args.concentric != 0:
+# divide data in ten quantiles
+    print('Dividing data in quantiles ... concentric circles ... \n')
+    for i in range(len(mergo)):
+        if mergo.loc[i, 'filled'] <= np.array(mergo["filled"].quantile([.15])):
+            mergo.loc[i, 'quant'] = 0
+        elif mergo.loc[i, 'filled'] > np.array(mergo["filled"].quantile([.1])) and mergo.loc[i, 'filled'] <= np.array(mergo["filled"].quantile([.2])):
+            mergo.loc[i, 'quant'] = 1
+        elif mergo.loc[i, 'filled'] > np.array(mergo["filled"].quantile([.2])) and mergo.loc[i, 'filled'] <= np.array(mergo["filled"].quantile([.3])):
+            mergo.loc[i, 'quant'] = 2
+        elif mergo.loc[i, 'filled'] > np.array(mergo["filled"].quantile([.3])) and mergo.loc[i, 'filled'] <= np.array(mergo["filled"].quantile([.4])):
+            mergo.loc[i, 'quant'] = 3
+        elif mergo.loc[i, 'filled'] > np.array(mergo["filled"].quantile([.4])) and mergo.loc[i, 'filled'] <= np.array(mergo["filled"].quantile([.5])):
+            mergo.loc[i, 'quant'] = 4
+        elif mergo.loc[i, 'filled'] > np.array(mergo["filled"].quantile([.5])) and mergo.loc[i, 'filled'] <= np.array(mergo["filled"].quantile([.6])):
+            mergo.loc[i, 'quant'] = 5
+        elif mergo.loc[i, 'filled'] > np.array(mergo["filled"].quantile([.6])) and mergo.loc[i, 'filled'] <= np.array(mergo["filled"].quantile([.7])):
+            mergo.loc[i, 'quant'] = 6
+        elif mergo.loc[i, 'filled'] > np.array(mergo["filled"].quantile([.7])) and mergo.loc[i, 'filled'] <= np.array(mergo["filled"].quantile([.8])):
+            mergo.loc[i, 'quant'] = 7
+        elif mergo.loc[i, 'filled'] > np.array(mergo["filled"].quantile([.8])) and mergo.loc[i, 'filled'] <= np.array(mergo["filled"].quantile([.9])):
+            mergo.loc[i, 'quant'] = 8
+        else:
+            mergo.loc[i, 'quant'] = 9
+    mergo.quant = mergo.quant.astype(int)    
+
+    def createList(n_comp): 
+        return list(range(0, n_comp)) 
+    seq_quant = createList(10)
+
+    m_q = {}
+    for i in seq_quant:
+        m_q['c%s' % i] = np.nanmean([np.array(mergo[mergo['quant'] == i].iloc[:,-2])])
+    m_q = np.array(pd.DataFrame(m_q, index = [0]))
+
+    for i in range(len(mergo)):
+        if mergo.loc[i, "quant"] == 0:
+            mergo.loc[i, 'Zq'] = m_q[0][0]
+        elif mergo.loc[i, "quant"] == 1:
+            mergo.loc[i, 'Zq'] = m_q[0][1]
+        elif mergo.loc[i, "quant"] == 2:
+            mergo.loc[i, 'Zq'] = m_q[0][2]
+        elif mergo.loc[i, "quant"] == 3:
+            mergo.loc[i, 'Zq'] = m_q[0][3]
+        elif mergo.loc[i, "quant"] == 4:
+            mergo.loc[i, 'Zq'] = m_q[0][4]
+        elif mergo.loc[i, "quant"] == 5:
+            mergo.loc[i, 'Zq'] = m_q[0][5]
+        elif mergo.loc[i, "quant"] == 6:
+            mergo.loc[i, 'Zq'] = m_q[0][6]
+        elif mergo.loc[i, "quant"] == 7:
+            mergo.loc[i, 'Zq'] = m_q[0][7]
+        elif mergo.loc[i, "quant"] == 8:
+            mergo.loc[i, 'Zq'] = m_q[0][8]
+        else:
+            mergo.loc[i, 'Zq'] = m_q[0][9]
+    mergo.Zq = mergo.Zq.astype(int)
+              
+    # data wrangling for unsupervised learning
+    mergo = mergo[[pm_args.id, pm_args.long, pm_args.lat, 'Zq']]  
+else:
+    mergo = mergo[[pm_args.id, pm_args.long, pm_args.lat, 'filled']]
+X = mergo.iloc[:, 1:5].to_numpy()
 
 # Gaussian Mixture Model for clustering
-n_comp = int((len(mergo)) * 0.02 - 56 )
+n_comp = int(((len(mergo)) * 0.02 - 56)/10) 
+if n_comp < 5:
+    n_comp = 5
 print("Computing gaussian mixture model clustering with ", n_comp, " components ... \n" )
 gmm = mixture.GaussianMixture(n_components=n_comp, covariance_type = 'full').fit(X)
 labels = gmm.predict(X)
