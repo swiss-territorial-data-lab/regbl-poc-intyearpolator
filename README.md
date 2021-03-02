@@ -51,23 +51,23 @@ Finally the predictions (*Ẑ*) can then be made using the sum of each row in th
 
 There are five possible entries to run the code, though only two are mandatory. Nevertheless be carefull, as the many of the optionals might be truly relevant depending n the file you're using. The two mandatory arguments are the **input** table path with ID columns, coordinates and random variables (usually year of construction) and the **output** table path, as below, in your terminal:
 
-	$python3 intyearpolator.py -i /path/to/input_table -o /path/to/output/predictions_table
+	$python3 intyearpolator.py -i /.../input_table -o /.../pred_table
 
 There are then the "optional" arguments referring to the columns in the input table, being them: **latitude** (lat), **longitude** (long), **ID** (id) and **random variable** (ranvar). The examples below include these possibilities, but keep in mind that defaults are *GKODE* for longitude, *GKODN* for latitude, *EGID* for ID and *GBAUJ* for random varaiable, as these are the names used RegBL.
 
-	$python3 intyearpolator.py --input /path/to/input_table --output /path/to/output/predictions_table --long X_coord --lat Y_coord --id ID --ranvar YEAR
+	$python3 intyearpolator.py --input /.../input_table --output /.../pred_table --long X_coord --lat Y_coord --id ID --ranvar YEAR
 
 or
 
-	$python3 intyearpolator.py -i /path/to/input_table -o /path/to/output/predictions_table -x X_coord -y Y_coord --id ID -z YEAR
+	$python3 intyearpolator.py -i /.../input_table -o /.../pred_table -x X_coord -y Y_coord --id ID -z YEAR
 
 Make sure coordinates are in some metric system as UTM, as the distance computations are made through trigonometry. The truly optional argument concerns the plotting of the clusters as seen above. One can visualise the clusters computed the the **plot** argument, as below:
 
-	$python3 intyearpolator.py -i /path/to/input_table -o /path/to/output/predictions_table --plot 1
+	$python3 intyearpolator.py -i /.../input_table -o /.../output/pred_table --plot 1
 
 or
 
-	$python3 intyearpolator.py -i /path/to/input_table -o /path/to/output/predictions_table -p 1
+	$python3 intyearpolator.py -i /.../input_table -o /.../pred_table -p 1
 
 Finally, an output table is generated containing the ID column, the two column coordinates, the *filled* column with the values from the first filling model here described a column with the *cluster* numbers and, at last, the *Z* column with final predictions. It shall look like this:
 
