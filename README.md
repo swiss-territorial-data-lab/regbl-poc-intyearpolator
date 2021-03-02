@@ -55,11 +55,13 @@ There are five possible entries to run the code, though only two are mandatory. 
 
 There are then the "optional" arguments referring to the columns in the input table, being them: **latitude** (lat), **longitude** (long), **ID** (id) and **random variable** (ranvar). The examples below include these possibilities, but keep in mind that defaults are *GKODE* for longitude, *GKODN* for latitude, *EGID* for ID and *GBAUJ* for random varaiable, as these are the names used RegBL.
 
-	$python3 intyearpolator.py --input /.../input_table --output /.../pred_table --long X_coord --lat Y_coord --id ID --ranvar YEAR
+	$python3 intyearpolator.py --input /.../input_table --output /.../pred_table 
+	--long X_coord --lat Y_coord --id ID --ranvar YEAR
 
 or
 
-	$python3 intyearpolator.py -i /.../input_table -o /.../pred_table -x X_coord -y Y_coord --id ID -z YEAR
+	$python3 intyearpolator.py -i /.../input_table -o /.../pred_table 
+	-x X_coord -y Y_coord --id ID -z YEAR
 
 Make sure coordinates are in some metric system as UTM, as the distance computations are made through trigonometry. The truly optional argument concerns the plotting of the clusters as seen above. One can visualise the clusters computed the the **plot** argument, as below:
 
